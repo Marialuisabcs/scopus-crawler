@@ -3,7 +3,7 @@ import sys
 import time
 from typing import Union
 
-from selenium.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.firefox.webdriver import WebDriver as FirefoxDriver
 from selenium.webdriver.support.wait import WebDriverWait
@@ -18,7 +18,7 @@ class ScopusCitationBot:
     download_dir: str
     proxy: str
 
-    def __init__(self, driver, download_dir, search_string: str, homepage: str = 'https://www.google.com/'):
+    def __init__(self, driver, download_dir, search_string: str, homepage: str = 'https://www-periodicos-capes-gov-br.ezl.periodicos.capes.gov.br/index.php?'):
         """
         :param driver: selenium driver with a configured profile
         :param download_dir: directory where the files will be downloaded
@@ -37,8 +37,9 @@ class ScopusCitationBot:
         with open(f'{self.download_dir}/scopus.csv', 'w') as f:
             f.write('\n')
 
+    def get_url(self, year):
         encoded_search_string = self.search_string.replace(' ', '+')
-        url = f'https://www-scopus.ez51.periodicos.capes.gov.br/results/results.uri?sort=plf-f&src=s&nlo=&nlr=&nls=&sid=2f421aa0c39581e21d981bd44f3fa26f&sot=b&sdt=b&sl=31&s=TITLE-ABS-KEY%28{encoded_search_string}%29&cl=t&offset=0&origin=resultslist&ss=plf-f&ws=r-f&ps=r-f&cs=r-f&cc=10&txGid=61d90ff2f35b79feae6d01d900b36838'
+        url = f'https://www-scopus.ez51.periodicos.capes.gov.br/results/results.uri?sort=plf-f&src=s&nlo=&nlr=&nls=&sid=ee1f9e9f5ce79f0c36e51ea488394230&sot=b&sdt=cl&cluster=scopubyr%2c%22{year}%22%2ct&sl=31&s=TITLE-ABS-KEY%28{encoded_search_string}%29&origin=resultslist&zone=leftSideBar&editSaveSearch=&txGid=973f0ce7e5ed7db95f978310df6b4303'
         self.driver.get(url)
 
     def wait_until_clickable(self, xpath: str, timeout: int = 20):
@@ -82,38 +83,38 @@ class ScopusCitationBot:
         self.driver.find_element_by_xpath(xpath).click()
 
     def export_csv_with_abstracts(self, file_id: int):
+        self.wait_until_clickable(XPath.PAGE)
+        self.wait_until_clickable(XPath.SELECT_ALL)
+
         try:
-            self.driver.find_element_by_xpath(XPath.END_OF_RESULTS)
-            return False
+            self.click(XPath.DIRECT_EXPORT)
 
         except NoSuchElementException:
-            self.wait_until_clickable(XPath.PAGE)
-            self.wait_until_clickable(XPath.SELECT_ALL)
+            self.click(XPath.EXPORT)
 
-            try:
-                self.click(XPath.DIRECT_EXPORT)
+            self.click(XPath.UNCHECK_INFOS)
 
-            except NoSuchElementException:
-                self.click(XPath.EXPORT)
+            self.click(XPath.CHECK_TITLE)
+            self.click(XPath.CHECK_ABSTRACT)
 
-                self.click(XPath.UNCHECK_INFOS)
+            self.click(XPath.CSV_FORMAT)
+            self.click(XPath.DOWNLOAD)
 
-                self.click(XPath.CHECK_TITLE)
-                self.click(XPath.CHECK_ABSTRACT)
+        try:
+            self.wait_until_clickable(XPath.ONLY_2000_RESULTS)
+            self.click(XPath.ONLY_2000_RESULTS)
+            self.click(XPath.ONLY_2000_RESULTS_EXPORT)
 
-                self.click(XPath.CSV_FORMAT)
-                self.click(XPath.DOWNLOAD)
+        except NoSuchElementException:
+            pass
 
-            try:
-                self.click(XPath.ONLY_2000_RESULTS)
-                self.click(XPath.ONLY_2000_RESULTS_EXPORT)
-
-            except NoSuchElementException:
-                pass
-
+        except TimeoutException:
             self.wait_download(file_id)
-
             return True
+
+        self.wait_download(file_id)
+
+        return True
 
     def end_session(self):
         """Closes the browser driver"""
