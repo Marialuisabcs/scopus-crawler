@@ -32,6 +32,15 @@ def run_bot(bot: crawler.ScopusCitationBot):
         year += 1
         # time.sleep(5)
 
+    print("Starting odd years...")
+    time.sleep(3)
+    year = 1990
+    while year <= 2022:
+        bot.get_url(year)
+        bot.export_csv_with_abstracts(1)
+        year += 1
+        # time.sleep(5)
+
     bot.end_session()
 
 
