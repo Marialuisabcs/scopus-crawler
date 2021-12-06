@@ -104,6 +104,7 @@ class ScopusCitationBot:
             self.wait_until_clickable(XPath.ONLY_2000_RESULTS)
             self.click(XPath.ONLY_2000_RESULTS)
             self.click(XPath.ONLY_2000_RESULTS_EXPORT)
+            time.sleep(5)
 
         except NoSuchElementException:
             pass
