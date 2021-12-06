@@ -17,3 +17,6 @@ trio==0.19.0
 trio-websocket==0.9.2
 urllib3==1.26.7
 wsproto==1.0.0
+
+peewee~=3.14.8
+furl~=2.1.3
