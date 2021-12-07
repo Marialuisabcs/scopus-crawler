@@ -17,7 +17,7 @@ class CLI:
             'help': self.help,
             'run-bot': self.run_bot,
             'set-folder': self.set_folder,
-            'save-csv': self.save_csv(),
+            'save-csv': self.save_csv,
             'exit': lambda: sys.exit(1)
         }
 
@@ -50,9 +50,11 @@ class CLI:
 
         if os.path.isdir(Path.cwd() / 'outputs' / folder_name):
             self.folder = folder_name
+            print('Folder selected succesfully!')
+            print('Current folder: ' + str(self.folder))
 
-        print('Folder selected succesfully!')
-        print('Current folder: ' + str(self.folder))
+        else:
+            print('Sorry this folder does not exists! Please try again')
 
         self.request_option()
 
@@ -64,7 +66,8 @@ class CLI:
         studies_added_count = 0
         total_studies_count = 0
         for file in files:
-            with open(path / file, 'r') as f:
+            print(f'Reading {file}...')
+            with open(path / file, 'r', encoding="utf-8-sig") as f:
                 reader = csv.DictReader(f)
                 for row in reader:
                     total_studies_count += 1
@@ -79,6 +82,8 @@ class CLI:
 
         print(f'{studies_added_count} from {total_studies_count} sutudies added')
 
+        self.request_option()
+
     def start(self):
         print('Type `help` for help')
         self.request_option()
@@ -88,9 +93,9 @@ def check_eid(eid):
     query = Study.select().where(Study.eid == eid)
 
     if query:
-        return True
+        return False
 
-    return False
+    return True
 
 
 if __name__ == '__main__':
