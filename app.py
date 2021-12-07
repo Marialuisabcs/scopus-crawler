@@ -1,6 +1,7 @@
 from views import CLI
 from models import create_tables
 
+
 def main():
     cli = CLI()
     cli.start()
