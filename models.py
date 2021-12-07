@@ -18,4 +18,4 @@ class Study(BaseModel):
 
 
 def create_tables():
-    db.create_tables(Study)
+    db.create_tables([Study])
