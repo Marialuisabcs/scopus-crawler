@@ -6,6 +6,9 @@ import glob
 from furl import furl
 from pathlib import Path
 
+from peewee import fn
+
+from models import db
 from crawler import main
 from models import Study
 
@@ -72,24 +75,24 @@ class CLI:
 
         print(f'Files found: {files}')
 
-        studies_added_count = 0
-        total_studies_count = 0
+        studies = []
         for file in files:
             print(f'Reading {file}...')
             with open(path / file, 'r', encoding="utf-8-sig") as f:
                 reader = csv.DictReader(f)
-                for row in reader:
-                    total_studies_count += 1
-                    eid = furl(row['Link']).args['eid']
-                    if check_eid(eid):
-                        Study.create(
-                            title=row['Title'],
-                            abstract=row['Abstract'],
-                            eid=eid,
-                        )
-                        studies_added_count += 1
 
-        print(f'{studies_added_count} from {total_studies_count} sutudies added')
+                for row in reader:
+                    eid = furl(row['Link']).args['eid']
+                    studies.append((row['Title'], row['Abstract'], eid))
+
+                if len(studies) > 5000:
+                    with db.atomic():
+                        Study.insert_many(studies, fields=[Study.title, Study.abstract, Study.eid]).execute()
+                        studies = []
+
+        with db.atomic():
+            Study.insert_many(studies, fields=[Study.title, Study.abstract, Study.eid]).execute()
+        remove_duplicates()
 
         self.request_option()
 
@@ -98,13 +101,11 @@ class CLI:
         self.request_option()
 
 
-def check_eid(eid):
-    query = Study.select().where(Study.eid == eid)
+def remove_duplicates():
+    subquery = Study.select(fn.MAX(Study.id)).group_by(Study.eid)
 
-    if query:
-        return False
-
-    return True
+    a = Study.delete().where(~Study.id << subquery).execute()
+    print(f"removed {a} duplicates")
 
 
 if __name__ == '__main__':
