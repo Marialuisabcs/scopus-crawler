@@ -12,6 +12,7 @@ from models import Study
 
 class CLI:
     def __init__(self):
+        self.root = Path.cwd()
         self.folder = None
         self.options = {
             'help': self.help,
@@ -48,21 +49,29 @@ class CLI:
             print('Folder name can not be empty')
             folder_name = input('>> Folder name: ')
 
-        if os.path.isdir(Path.cwd() / 'outputs' / folder_name):
+        path = self.root / 'outputs' / folder_name
+        if os.path.isdir(path):
             self.folder = folder_name
             print('Folder selected succesfully!')
-            print('Current folder: ' + str(self.folder))
+            print(f'Current path: {path}')
 
         else:
-            print('Sorry this folder does not exists! Please try again')
+            print(f'Sorry {path} does not exists! Please try again')
 
         self.request_option()
 
     def save_csv(self):
-        path = (Path.cwd() / 'outputs' / self.folder)
+        print('Saving csv files...')
+
+        path = (self.root / 'outputs' / self.folder)
+        print(f'Working directory: {path} ')
+
         extension = 'csv'
         os.chdir(path)
         files = glob.glob('*.{}'.format(extension))
+
+        print(f'Files found: {files}')
+
         studies_added_count = 0
         total_studies_count = 0
         for file in files:
