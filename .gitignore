@@ -1,6 +1,7 @@
 geckodriver.exe
 outputs/
 local-storage.db
+local-storage.db-journal
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
