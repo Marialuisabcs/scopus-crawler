@@ -83,15 +83,16 @@ class CLI:
 
                 for row in reader:
                     eid = furl(row['Link']).args['eid']
-                    studies.append((row['Title'], row['Abstract'], eid))
+                    string = self.folder
+                    studies.append((row['Title'], row['Abstract'], eid, string))
 
                 if len(studies) > 5000:
                     with db.atomic():
-                        Study.insert_many(studies, fields=[Study.title, Study.abstract, Study.eid]).execute()
+                        Study.insert_many(studies, fields=[Study.title, Study.abstract, Study.eid, Study.string]).execute()
                         studies = []
 
         with db.atomic():
-            Study.insert_many(studies, fields=[Study.title, Study.abstract, Study.eid]).execute()
+            Study.insert_many(studies, fields=[Study.title, Study.abstract, Study.eid, Study.string]).execute()
         remove_duplicates()
 
         self.request_option()

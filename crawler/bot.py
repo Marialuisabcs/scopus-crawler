@@ -84,7 +84,9 @@ class ScopusCitationBot:
 
     def export_csv_with_abstracts(self, file_id: int):
         self.wait_until_clickable(XPath.PAGE)
-        self.wait_until_clickable(XPath.SELECT_ALL)
+
+        if not self.driver.find_element_by_id('mainResults-selectAllTop').is_selected():
+            self.wait_until_clickable(XPath.SELECT_ALL)
 
         try:
             self.click(XPath.DIRECT_EXPORT)

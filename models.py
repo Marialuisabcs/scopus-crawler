@@ -15,6 +15,7 @@ class Study(BaseModel):
     title = CharField()
     abstract = TextField()
     eid = CharField(null=True)
+    string = TextField()
 
 
 def create_tables():
